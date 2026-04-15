@@ -1,0 +1,30 @@
+<api xmlns="http://ws.apache.org/ns/synapse" name="PaymentAPI" context="/process-payment">
+    <resource methods="GET">
+        <inSequence>
+
+            <!-- Primary Payment -->
+            <send>
+                <endpoint>
+                    <http method="get" uri-template="http://127.0.0.1:38098/pay"/>
+                </endpoint>
+            </send>
+
+            <!-- Check Response -->
+            <filter source="$axis2:HTTP_SC" regex="200">
+                <then>
+                    <respond/>
+                </then>
+                <else>
+                    <!-- Fallback -->
+                    <send>
+                        <endpoint>
+                            <http method="get" uri-template="http://127.0.0.1:17514/pay"/>
+                        </endpoint>
+                    </send>
+                    <respond/>
+                </else>
+            </filter>
+
+        </inSequence>
+    </resource>
+</api>
