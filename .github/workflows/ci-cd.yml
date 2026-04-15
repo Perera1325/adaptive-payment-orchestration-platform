@@ -1,0 +1,35 @@
+name: CI-CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set Minikube Docker Env
+        run: |
+          minikube docker-env | Invoke-Expression
+
+      - name: Build payment-service
+        run: |
+          docker build -t payment-service ./microservices/payment-service
+
+      - name: Build fallback-service
+        run: |
+          docker build -t fallback-service ./microservices/fallback-service
+
+      - name: Apply Kubernetes configs
+        run: |
+          kubectl apply -f k8s/base/
+
+      - name: Restart deployments
+        run: |
+          kubectl rollout restart deployment payment-service
+          kubectl rollout restart deployment fallback-service
