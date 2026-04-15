@@ -10,7 +10,7 @@ app.get("/pay", (req, res) => {
   }
 
   console.log("Payment Success");
-  res.send("Payment Success");
+  res.send("Payment Success from CI/CD");
 });
 
 app.listen(3000, () => {
