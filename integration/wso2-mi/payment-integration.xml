@@ -2,28 +2,34 @@
     <resource methods="GET">
         <inSequence>
 
-            <!-- Primary Payment -->
-            <send>
+            <call>
                 <endpoint>
-                    <http method="get" uri-template="http://127.0.0.1:38098/pay"/>
-                </endpoint>
-            </send>
-
-            <!-- Check Response -->
-            <filter source="$axis2:HTTP_SC" regex="200">
-                <then>
-                    <respond/>
-                </then>
-                <else>
-                    <!-- Fallback -->
-                    <send>
+                    <failover>
                         <endpoint>
-                            <http method="get" uri-template="http://127.0.0.1:17514/pay"/>
+                            <http method="get" uri-template="http://127.0.0.1:56379/pay"/>
                         </endpoint>
-                    </send>
-                    <respond/>
-                </else>
+                        <endpoint>
+                            <http method="get" uri-template="http://127.0.0.1:60844/pay"/>
+                        </endpoint>
+                    </failover>
+                </endpoint>
+            </call>
+
+            <!-- Explicit failover for HTTP 500 -->
+            <filter source="$axis2:HTTP_SC" regex="500">
+                <then>
+                    <log level="custom">
+                        <property name="status" value="Primary service returned 500. Failing over to fallback-service..."/>
+                    </log>
+                    <call>
+                        <endpoint>
+                            <http method="get" uri-template="http://127.0.0.1:60844/pay"/>
+                        </endpoint>
+                    </call>
+                </then>
             </filter>
+
+            <respond/>
 
         </inSequence>
     </resource>
